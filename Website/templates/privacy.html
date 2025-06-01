@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %} Privacy Policy {% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">Privacy Policy</h1>
+                    <div class="privacy-content">
+                        <section class="mb-4">
+                            <h3>1. Information We Collect</h3>
+                            <p>We collect information that you provide directly to us, including:</p>
+                            <ul>
+                                <li>Name and contact information</li>
+                                <li>Date of birth</li>
+                                <li>Account credentials</li>
+                                <li>Communication preferences</li>
+                            </ul>
+                        </section>
+
+                        <section class="mb-4">
+                            <h3>2. How We Use Your Information</h3>
+                            <p>We use the information we collect to:</p>
+                            <ul>
+                                <li>Provide and maintain our services</li>
+                                <li>Process your transactions</li>
+                                <li>Send you important updates</li>
+                                <li>Improve our services</li>
+                            </ul>
+                        </section>
+
+                        <section class="mb-4">
+                            <h3>3. Data Protection</h3>
+                            <p>We implement appropriate security measures to protect your personal information.</p>
+                        </section>
+
+                        <div class="text-center mt-5">
+                            <p class="text-muted">Last updated: June 1, 2025</p>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Back to Registration</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

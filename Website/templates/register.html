@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %} Register {% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center min-vh-100 align-items-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold">Create Account</h2>
+                        <p class="text-muted">Please fill in your information</p>
+                    </div>
+                    <form method="POST">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Full Name" required>
+                            <label for="fullName">Full Name</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                            <label for="email">Email address</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+                            <label for="birthdate">Date of Birth</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" 
+                                   pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+                                   title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" required>
+                            <label for="password">Password</label>
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+                            <label for="confirmPassword">Confirm Password</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="age" name="age" required>
+                            <label class="form-check-label" for="age">
+                                I confirm that I am atleast at legal age 
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the <a href="{{ url_for('views.terms') }}" class="text-decoration-none">Terms of Service</a>
+                            </label>
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="privacy" name="privacy" required>
+                            <label class="form-check-label" for="privacy">
+                                I agree to the <a href="{{ url_for('views.privacy') }}" class="text-decoration-none">Privacy Policy</a>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 mb-3">Create Account</button>
+                        <p class="text-center mb-0">
+                            Already have an account? 
+                            <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Sign in</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

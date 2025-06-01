@@ -1,0 +1,572 @@
+{% extends 'base.html' %}
+{% block title %}My Transactions{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">My Transactions</h2>
+        <!-- Updated nav tabs -->
+        <ul class="nav nav-pills" id="transactionTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" 
+                        id="customize-tab" 
+                        data-bs-toggle="pill"
+                        data-bs-target="#customize" 
+                        type="button" 
+                        role="tab"
+                        aria-controls="customize" 
+                        aria-selected="true">
+                    <i class="bi bi-tools me-2"></i>Customize Requests
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" 
+                        id="purchases-tab" 
+                        data-bs-toggle="pill"
+                        data-bs-target="#purchases" 
+                        type="button" 
+                        role="tab"
+                        aria-controls="purchases" 
+                        aria-selected="false">
+                    <i class="bi bi-bag me-2"></i>Purchases
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Updated tab content -->
+    <div class="tab-content" id="transactionTabsContent">
+        <!-- Customize Requests Tab -->
+        <div class="tab-pane fade show active" id="customize" role="tabpanel" aria-labelledby="customize-tab">
+            {% if customize_requests %}
+                <div class="row g-4">
+                    {% for request in customize_requests %}
+                    <div class="col-lg-6">
+                        <!-- Replace the existing customize requests card content -->
+                        <div class="card h-100 border-0 shadow-sm hover-card cursor-pointer" 
+                             onclick='viewRequestDetails(JSON.parse(`{{ request|tojson|safe }}`))' 
+                             role="button" 
+                             aria-pressed="false">
+                            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if request.status == 'pending' %}
+                                            <span class="badge bg-warning rounded-pill">
+                                                <i class="bi bi-clock me-1"></i>Pending Approval
+                                            </span>
+                                        {% elif request.status == 'approved' %}
+                                            <span class="badge bg-success rounded-pill">
+                                                <i class="bi bi-check-circle me-1"></i>Approved
+                                            </span>
+                                        {% elif request.status == 'rejected' %}
+                                            <span class="badge bg-danger rounded-pill">
+                                                <i class="bi bi-x-circle me-1"></i>Rejected
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ request.created_at.strftime('%B %d, %Y') }}
+                                    </small>
+                                </div>
+                                {% if request.admin_message %}
+                                <div class="mt-2 p-2 bg-light rounded">
+                                    <small class="text-muted">
+                                        <i class="bi bi-chat-text me-1"></i>Admin Message: {{ request.admin_message }}
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-body p-4">
+                                <!-- ...existing card body content... -->
+                                <div class="row">
+                                    <div class="col-md-4 mb-3 mb-md-0">
+                                        <img src="{{ request.product_image }}" 
+                                             class="img-fluid rounded shadow-sm" 
+                                             alt="{{ request.product_name }}"
+                                             style="object-fit: cover; height: 150px; width: 100%;">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <h5 class="card-title mb-3">{{ request.product_name }}</h5>
+                                        <div class="specs-grid">
+                                            <div class="spec-item">
+                                                <i class="bi bi-rulers text-primary"></i>
+                                                <span>{{ request.width }}cm × {{ request.height }}cm</span>
+                                            </div>
+                                            <div class="spec-item">
+                                                <i class="bi bi-tag text-primary"></i>
+                                                <span>₱{{ "{:,.2f}".format(request.original_price) }}</span>
+                                            </div>
+                                            <div class="spec-item">
+                                                <i class="bi bi-clock-history text-primary"></i>
+                                                <span>
+                                                    {% if request.status == 'approved' and request.approved_at %}
+                                                        Approved: {{ request.approved_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                                    {% elif request.status == 'rejected' and request.rejected_at %}
+                                                        Rejected: {{ request.rejected_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                                    {% elif request.status == 'pending' %}
+                                                        Awaiting Response
+                                                    {% else %}
+                                                        Status update not available
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <h6 class="mb-2">Special Instructions:</h6>
+                                            <p class="card-text bg-light p-2 rounded">
+                                                {{ request.instructions or 'No special instructions' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-clipboard-x display-1 text-muted mb-3"></i>
+                        <h4>No Customize Requests</h4>
+                        <p class="text-muted">You haven't made any customization requests yet.</p>
+                        <a href="{{ url_for('views.products_page') }}" class="btn btn-primary">
+                            Browse Products
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Purchases Tab -->
+        <div class="tab-pane fade" id="purchases" role="tabpanel" aria-labelledby="purchases-tab">
+            {% if orders %}
+                <div class="row g-4">
+                    {% for order in orders %}
+                    <div class="col-lg-6">
+                        <div class="card h-100 border-0 shadow-sm hover-card">
+                            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-0">Order #{{ order.order_number }}</h5>
+                                        <span class="badge {% if order.status == 'pending' %}bg-warning
+                                                          {% elif order.status == 'processing' %}bg-info
+                                                          {% elif order.status == 'shipped' %}bg-primary
+                                                          {% elif order.status == 'delivered' %}bg-success
+                                                          {% elif order.status == 'cancelled' %}bg-danger
+                                                          {% endif %} rounded-pill mt-2">
+                                            <i class="bi bi-{{ 'clock' if order.status == 'pending' 
+                                                            else 'gear' if order.status == 'processing'
+                                                            else 'truck' if order.status == 'shipped'
+                                                            else 'check-circle' if order.status == 'delivered'
+                                                            else 'x-circle' }} me-1"></i>
+                                            {{ order.status|title }}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ order.created_at.strftime('%B %d, %Y') }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="table-responsive">
+                                    <table class="table table-borderless mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Product</th>
+                                                <th class="text-center">Qty</th>
+                                                <th class="text-end">Price</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in order.items %}
+                                            <tr>
+                                                <td>{{ item.name }}</td>
+                                                <td class="text-center">{{ item.quantity }}</td>
+                                                <td class="text-end">₱{{ "{:,.2f}".format(item.price) }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                            <tr class="border-top">
+                                                <td colspan="2" class="text-end fw-bold">Subtotal:</td>
+                                                <td class="text-end">₱{{ "{:,.2f}".format(order.subtotal) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" class="text-end">Shipping Fee:</td>
+                                                <td class="text-end">₱{{ "{:,.2f}".format(order.shipping_fee) }}</td>
+                                            </tr>
+                                            <tr class="fw-bold">
+                                                <td colspan="2" class="text-end">Total:</td>
+                                                <td class="text-end">₱{{ "{:,.2f}".format(order.total) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Shipping Details -->
+                                <div class="mt-4 pt-3 border-top">
+                                    <h6 class="mb-3">Shipping Details</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>Name:</strong> {{ order.contact.first_name }} {{ order.contact.last_name }}</p>
+                                            <p class="mb-1"><strong>Phone:</strong> {{ order.contact.phone }}</p>
+                                            <p class="mb-1"><strong>Email:</strong> {{ order.contact.email }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>Address:</strong></p>
+                                            <p class="mb-0">
+                                                {{ order.shipping.address }}<br>
+                                                {{ order.shipping.city }}, {{ order.shipping.province }}<br>
+                                                {{ order.shipping.zip_code }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
+                        <h4>No Orders Yet</h4>
+                        <p class="text-muted">You haven't placed any orders yet.</p>
+                        <a href="{{ url_for('views.products_page') }}" class="btn btn-primary">
+                            Start Shopping
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Details Modal -->
+<div class="modal fade" id="transactionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row">
+                    <!-- Status Badge -->
+                    <div class="col-12 mb-4">
+                        <span id="modalStatus" class="badge rounded-pill"></span>
+                        <span class="ms-3 text-muted">
+                            <i class="bi bi-calendar3"></i>
+                            <span id="modalDate"></span>
+                        </span>
+                    </div>
+                    
+                    <!-- Product Image -->
+                    <div class="col-md-5 mb-4 mb-md-0">
+                        <img id="modalImage" src="" alt="Product" 
+                             class="img-fluid rounded shadow-sm" 
+                             style="width: 100%; height: 300px; object-fit: cover;">
+                    </div>
+                    
+                    <!-- Product Details -->
+                    <div class="col-md-7">
+                        <h4 id="modalProductName" class="mb-3"></h4>
+                        
+                        <div class="specs-detail mb-4">
+                            <div class="spec-row">
+                                <i class="bi bi-rulers text-primary"></i>
+                                <strong>Dimensions:</strong>
+                                <span id="modalDimensions"></span>
+                            </div>
+                            <div class="spec-row">
+                                <i class="bi bi-tag text-primary"></i>
+                                <strong>Price:</strong>
+                                <span id="modalPrice"></span>
+                            </div>
+                            <div class="spec-row">
+                                <i class="bi bi-clock-history text-primary"></i>
+                                <strong>Status Updated:</strong>
+                                <span id="modalStatusUpdate"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="instructions-box p-3 bg-light rounded">
+                            <h6 class="mb-2">
+                                <i class="bi bi-chat-text text-primary"></i>
+                                Special Instructions
+                            </h6>
+                            <p id="modalInstructions" class="mb-0"></p>
+                        </div>
+                        
+                        <div id="adminMessageBox" class="admin-message mt-4">
+                            <h6 class="mb-2">
+                                <i class="bi bi-person-check text-primary"></i>
+                                Admin Response
+                            </h6>
+                            <p id="modalAdminMessage" class="mb-0"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tabs
+    const triggerTabList = [].slice.call(document.querySelectorAll('#transactionTabs button'));
+    triggerTabList.forEach(function(triggerEl) {
+        const tabTrigger = new bootstrap.Tab(triggerEl);
+
+        triggerEl.addEventListener('click', function(event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
+});
+
+function viewRequestDetails(request) {
+    try {
+        console.log('Request data:', request); // Debug log
+        
+        const modal = document.getElementById('transactionModal');
+        if (!modal) {
+            throw new Error('Modal element not found');
+        }
+
+        // Initialize Bootstrap modal
+        const modalInstance = new bootstrap.Modal(modal);
+
+        // Set status badge
+        const statusBadge = document.getElementById('modalStatus');
+        const statusConfig = {
+            'pending': { class: 'bg-warning', icon: 'clock', text: 'Pending Approval' },
+            'approved': { class: 'bg-success', icon: 'check-circle', text: 'Approved' },
+            'rejected': { class: 'bg-danger', icon: 'x-circle', text: 'Rejected' }
+        };
+
+        const status = statusConfig[request.status] || { class: 'bg-secondary', icon: 'question', text: 'Unknown' };
+        statusBadge.className = `badge rounded-pill ${status.class}`;
+        statusBadge.innerHTML = `<i class="bi bi-${status.icon} me-1"></i>${status.text}`;
+
+        // Format date
+        const formatDate = (timestamp) => {
+            if (!timestamp) return 'Not available';
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-PH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        };
+
+        // Format datetime with time
+        const formatDateTime = (timestamp) => {
+            if (!timestamp) return 'Not available';
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-PH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        };
+
+        // Format status update time based on status
+        let statusUpdateText;
+        if (request.status === 'approved' && request.approved_at) {
+            statusUpdateText = `Approved on: ${formatDateTime(request.approved_at)}`;
+        } else if (request.status === 'rejected' && request.rejected_at) {
+            statusUpdateText = `Rejected on: ${formatDateTime(request.rejected_at)}`;
+        } else if (request.status === 'pending') {
+            statusUpdateText = 'Awaiting admin response';
+        } else {
+            statusUpdateText = 'Status update not available';
+        }
+
+        // Update modal content
+        document.getElementById('modalDate').textContent = formatDate(request.created_at);
+        document.getElementById('modalImage').src = request.product_image || '/static/img/placeholder.jpg';
+        document.getElementById('modalProductName').textContent = request.product_name;
+        document.getElementById('modalDimensions').textContent = `${request.width}cm × ${request.height}cm`;
+        document.getElementById('modalPrice').textContent = `₱${parseFloat(request.original_price).toLocaleString('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+        document.getElementById('modalStatusUpdate').textContent = statusUpdateText;
+        document.getElementById('modalStatusUpdate').className = `status-${request.status}`;
+        document.getElementById('modalInstructions').textContent = request.instructions || 'No special instructions';
+
+        // Handle admin message
+        const adminMessageBox = document.getElementById('adminMessageBox');
+        const modalAdminMessage = document.getElementById('modalAdminMessage');
+        
+        if (request.admin_message) {
+            adminMessageBox.style.display = 'block';
+            modalAdminMessage.textContent = request.admin_message;
+        } else {
+            adminMessageBox.style.display = 'none';
+        }
+
+        // Show modal
+        modalInstance.show();
+
+    } catch (error) {
+        console.error('Error showing transaction details:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to display transaction details'
+        });
+    }
+}
+</script>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+
+    .specs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+
+    .spec-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .spec-item i {
+        font-size: 1.2rem;
+    }
+
+    .empty-state {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .table th {
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    /* Status badge styles */
+    .badge {
+        padding: 0.6em 1.2em;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .badge.bg-warning {
+        background-color: #ffc107 !important;
+        color: #000;
+    }
+
+    .badge.bg-success {
+        background-color: #198754 !important;
+    }
+
+    .badge.bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .badge i {
+        font-size: 1rem;
+        vertical-align: -2px;
+    }
+
+    /* Admin message styles */
+    .admin-message {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 0.5rem 1rem;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-group .btn {
+        padding: 0.5rem 1.5rem;
+    }
+
+    .btn-group .btn i {
+        font-size: 1.1rem;
+    }
+
+    /* Add these new styles */
+    .nav-pills .nav-link {
+        color: #6c757d;
+        background: none;
+        border: 1px solid #dee2e6;
+        margin: 0 0.25rem;
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .nav-pills .nav-link.active {
+        color: #fff;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .nav-pills .nav-link:hover:not(.active) {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+
+    .tab-content {
+        padding-top: 2rem;
+    }
+
+    .spec-item .response-time {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .spec-row .status-update {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .spec-row .status-approved {
+        color: #198754;
+        font-weight: 500;
+    }
+
+    .spec-row .status-rejected {
+        color: #dc3545;
+        font-weight: 500;
+    }
+
+    .spec-row .status-pending {
+        color: #ffc107;
+        font-weight: 500;
+    }
+
+    .timestamp {
+        font-family: monospace;
+        background: #f8f9fa;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

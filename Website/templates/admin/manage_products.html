@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Products{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Manage Products</h1>
+        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add New Product
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if products %}
+                            {% for product in products %}
+                            <tr>
+                                <td>
+                                    {% if product.image_url %}
+                                        <img src="{{ product.image_url }}" alt="{{ product.name }}" 
+                                             class="img-thumbnail" style="max-width: 50px;">
+                                    {% else %}
+                                        <span class="text-muted">No image</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.price|peso }}</td>
+                                <td>{{ product.category }}</td>
+                                <td>{{ product.description }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <!-- Updated delete button -->
+                                        <button type="button" 
+                                                class="btn btn-sm btn-danger delete-product" 
+                                                data-product-id="{{ product.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <p class="text-muted mb-0">No products found</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Include SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers to all delete buttons
+    document.querySelectorAll('.delete-product').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            
+            Swal.fire({
+                title: 'Delete Product?',
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state
+                    Swal.fire({
+                        title: 'Deleting...',
+                        text: 'Please wait...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Send delete request
+                    fetch(`/admin/products/${productId}/delete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Deleted!',
+                                text: 'Product has been deleted.',
+                                icon: 'success',
+                                timer: 1500
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            throw new Error(data.error || 'Failed to delete product');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: error.message || 'Something went wrong.',
+                            icon: 'error'
+                        });
+                    });
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

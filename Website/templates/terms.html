@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %} Terms of Service {% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">Terms of Service</h1>
+                    <div class="terms-content">
+                        <section class="mb-4">
+                            <h3>1. Acceptance of Terms</h3>
+                            <p>By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement.</p>
+                        </section>
+
+                        <section class="mb-4">
+                            <h3>2. Use License</h3>
+                            <p>Permission is granted to temporarily download one copy of the materials on Carlos Glass website for personal, non-commercial transitory viewing only.</p>
+                        </section>
+
+                        <section class="mb-4">
+                            <h3>3. User Account</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">✓ You must provide accurate and complete information when creating an account</li>
+                                <li class="mb-2">✓ You are responsible for maintaining the security of your account</li>
+                                <li class="mb-2">✓ You must notify us immediately of any unauthorized access</li>
+                            </ul>
+                        </section>
+
+                        <section class="mb-4">
+                            <h3>4. Privacy Policy</h3>
+                            <p>Your use of the Carlos Glass website is also governed by our Privacy Policy. Please review our Privacy Policy, which also governs the site and informs users of our data collection practices.</p>
+                        </section>
+
+                        <section class="mb-4">
+                            <h3>5. Disclaimer</h3>
+                            <p>The materials on Carlos Glass's website are provided on an 'as is' basis. Carlos Glass makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.</p>
+                        </section>
+
+                        <section class="mb-4">
+                            <h3>6. Contact Information</h3>
+                            <p>If you have any questions about these Terms, please contact us at:</p>
+                            <p class="mb-0">Email: contact@carlosglass.com</p>
+                            <p>Phone: (555) 123-4567</p>
+                        </section>
+
+                        <div class="text-center mt-5">
+                            <p class="text-muted">Last updated: June 1, 2025</p>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Back to Registration</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

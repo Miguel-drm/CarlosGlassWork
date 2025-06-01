@@ -1,0 +1,788 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - Carlos Glass Work{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Modal Styles */
+.product-modal {
+    max-width: 600px !important;
+    width: 95% !important;
+}
+
+.product-modal .swal2-html-container {
+    margin: 0;
+    padding: 0;
+}
+
+.product-image-container {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.product-modal-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.product-modal-image:hover {
+    transform: scale(1.02);
+}
+
+.product-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.product-price {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.price-label {
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.price-amount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.dimension-inputs {
+    max-width: 300px;
+}
+
+.dimension-separator {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    max-width: 200px;
+    gap: 0.5rem;
+}
+
+.quantity-control .btn {
+    padding: 0.375rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-input {
+    width: 80px !important;
+    text-align: center;
+    font-weight: 500;
+}
+
+.customize-note {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #0d6efd;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.spec-group {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    text-align: center;
+}
+
+/* Form Control Styles */
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Animation */
+.swal2-show {
+    animation: modal-show 0.3s ease;
+}
+
+@keyframes modal-show {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-details {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.input-group .form-control[readonly] {
+    background-color: #f8f9fa;
+}
+
+.swal2-popup {
+    width: 32em !important;
+}
+
+.text-muted.small {
+    font-size: 0.875rem;
+}
+
+.product-modal-content {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+.product-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.product-modal-image {
+    max-width: 100%;
+    height: auto;
+}
+
+.specifications-container {
+    margin-top: 1rem;
+}
+
+.dimension-inputs {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.dimension-inputs .input-group {
+    justify-content: center;
+}
+
+.quantity-control.modern {
+    max-width: 200px;
+    margin: 0 auto;
+    justify-content: center;
+}
+
+/* Remove number input spinners */
+.form-control::-webkit-outer-spin-button,
+.form-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+.form-control[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Improve input sizing and alignment */
+.dimension-inputs .form-control {
+    width: 80px !important;
+    text-align: center;
+}
+
+.dimension-inputs .input-group-text {
+    background: transparent;
+    border: none;
+    padding: 0 0.5rem;
+}
+
+.spec-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.btn-quantity {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-input {
+    width: 60px !important;
+    text-align: center;
+    border-radius: 8px;
+    margin: 0 0.5rem;
+}
+
+/* Card Styles */
+.product-card .card {
+    border: none;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+}
+
+.product-card .card-img-top {
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.product-card .card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.product-card .card-body {
+    padding: 1.5rem;
+}
+
+.product-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+}
+
+.product-card .card-text {
+    color: #6c757d;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-card .price-tag {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0d6efd;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.product-card .price-tag i {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.product-card .category-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #0d6efd;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-card .btn-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.product-card .btn {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.product-card .btn i {
+    font-size: 1.1rem;
+}
+
+.product-card .btn-primary {
+    background: #0d6efd;
+    border: none;
+    flex: 2;
+}
+
+.product-card .btn-outline-secondary {
+    border-color: #dee2e6;
+    color: #6c757d;
+    flex: 1;
+}
+
+.product-card .btn-primary:hover {
+    background: #0b5ed7;
+    transform: translateY(-2px);
+}
+
+.product-card .btn-outline-secondary:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+}
+
+/* Modern Modal Styles */
+.modern-modal {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 10px;
+    width: 100% !important;
+    max-width: 900px !important;
+    min-height: auto !important;
+}
+
+.modal-title-custom {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 1rem 0;
+}
+
+/* Updated Modal Image Styles */
+.product-image-section {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.product-image-wrapper {
+    padding: 0.25rem;
+}
+
+.product-modal-image {
+    height: 300px;
+}
+
+.product-info-section {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.spec-group.glass-effect {
+    padding: 1rem;
+    margin-bottom: 0;
+}
+
+.spec-header {
+    margin-bottom: 0.75rem;
+}
+
+.customize-note {
+    margin-top: 0;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.modal-actions-custom {
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+/* Cart Count Animation */
+.cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+}
+
+.cart-count-animation {
+    transform: scale(1.3);
+}
+
+.modal-actions-custom .btn-primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-actions-custom .btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+.modal-actions-custom .btn-primary:active::after {
+    width: 200px;
+    height: 200px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Our Products</h1>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" 
+                    id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Filter by Category
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                <li><a class="dropdown-item" href="#" onclick="filterProducts('all')">All Products</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterProducts('glass')">Glass</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterProducts('windows')">Windows</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterProducts('mirrors')">Mirrors</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for product in products %}
+        <div class="col product-card" data-category="{{ product.category }}" data-product-id="{{ product.id }}">
+            <div class="card h-100">
+                {% if product.image_url %}
+                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                {% endif %}
+                <span class="category-badge">
+                    <i class="bi bi-tag-fill me-1"></i>{{ product.category }}
+                </span>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description }}</p>
+                    <div class="price-tag">
+                        {{ product.price|peso }}
+                    </div>
+                    <div class="btn-group mt-auto">
+                        <button onclick="addToCart('{{ product.id }}')" 
+                                class="btn btn-primary">
+                            <i class="bi bi-cart-plus"></i>
+                            Add to Cart
+                        </button>
+                        <button onclick="customizeProduct('{{ product.id }}')" 
+                                class="btn btn-outline-secondary">
+                            <i class="bi bi-tools"></i>
+                            Customize
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <p class="text-center text-muted">No products available.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addToCart(productId) {
+    try {
+        const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+        const productName = productCard.querySelector('.card-title').textContent;
+        const productDescription = productCard.querySelector('.card-text').textContent;
+        const productPrice = productCard.querySelector('.price-tag').textContent.trim();
+        const productImage = productCard.querySelector('.card-img-top').src;
+        const productCategory = productCard.querySelector('.category-badge').textContent.trim();
+
+        Swal.fire({
+            title: '<div class="modal-title-custom">Add to Shopping Cart</div>',
+            html: `
+                <div class="product-modal-content">
+                    <div class="row">
+                        <!-- Left Column: Image and Category -->
+                        <div class="col-md-6">
+                            <div class="product-image-section">
+                                <div class="product-image-wrapper">
+                                    <div class="product-image-container">
+                                        <img src="${productImage}" alt="${productName}" 
+                                             class="product-modal-image">
+                                    </div>
+                                </div>
+                                <div class="category-badge-container mt-3">
+                                    <span class="category-badge-modal">
+                                        <i class="bi bi-tag-fill me-2"></i>${productCategory}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Details and Controls -->
+                        <div class="col-md-6">
+                            <div class="product-info-section">
+                                <h4 class="product-title">${productName}</h4>
+                                <div class="price-badge mb-3">
+                                    ${productPrice}
+                                </div>
+                                
+                                <!-- Dimensions -->
+                                <div class="spec-group glass-effect mb-3">
+                                    <div class="spec-header">
+                                        <i class="bi bi-rulers"></i>
+                                        <span>Dimensions</span>
+                                    </div>
+                                    <div class="dimension-inputs">
+                                        <div class="input-group">
+                                            <input type="number" id="defaultWidth" class="form-control" value="100" readonly>
+                                            <span class="input-group-text">×</span>
+                                            <input type="number" id="defaultHeight" class="form-control" value="100" readonly>
+                                            <span class="input-group-text">cm</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quantity -->
+                                <div class="spec-group glass-effect">
+                                    <div class="spec-header">
+                                        <i class="bi bi-basket"></i>
+                                        <span>Quantity</span>
+                                    </div>
+                                    <div class="quantity-control modern">
+                                        <button type="button" class="btn btn-quantity" onclick="decrementQuantity()">
+                                            <i class="bi bi-dash-lg"></i>
+                                        </button>
+                                        <input type="number" id="quantity" class="form-control quantity-input" 
+                                               value="1" min="1" max="10" required>
+                                        <button type="button" class="btn btn-quantity" onclick="incrementQuantity()">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="customize-note mt-3">
+                                    <i class="bi bi-lightbulb-fill"></i>
+                                    <span>Need custom size? Use Customize</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-cart-plus"></i> Add to Cart',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'product-modal modern-modal',
+                confirmButton: 'btn btn-primary btn-lg',
+                cancelButton: 'btn btn-outline-secondary btn-lg',
+                actions: 'modal-actions-custom'
+            },
+            preConfirm: () => {
+                const quantity = document.getElementById('quantity').value;
+                if (quantity < 1 || quantity > 10) {
+                    Swal.showValidationMessage('Please enter a quantity between 1 and 10');
+                    return false;
+                }
+                
+                // Prepare cart item data
+                const cartItem = {
+                    product_id: productId,
+                    name: productName,
+                    price: productPrice,
+                    quantity: parseInt(quantity),
+                    image_url: productImage,
+                    width: 100, // Default width
+                    height: 100, // Default height
+                    is_customized: false
+                };
+
+                // Send to backend
+                return fetch('/add-to-cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(cartItem)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to add item to cart');
+                    }
+                    return data;
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added to Cart!',
+                    text: `Added ${document.getElementById('quantity').value} item(s) to your cart`,
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Update cart count in navbar if exists
+                    updateCartCount();
+                });
+            }
+        }).catch(error => {
+            console.error('Error adding to cart:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to add item to cart. Please try again.'
+            });
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Add this function to update the cart count in navbar
+function updateCartCount() {
+    fetch('/get-cart-count')
+    .then(response => response.json())
+    .then(data => {
+        const cartCountElement = document.querySelector('.cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = data.count;
+            // Animate the cart count update
+            cartCountElement.classList.add('cart-count-animation');
+            setTimeout(() => {
+                cartCountElement.classList.remove('cart-count-animation');
+            }, 300);
+        }
+    })
+    .catch(error => console.error('Error updating cart count:', error));
+}
+
+function customizeProduct(productId) {
+    Swal.fire({
+        title: 'Customize Product',
+        html: `
+            <form id="customizeForm">
+                <div class="mb-3">
+                    <label class="form-label">Dimensions</label>
+                    <div class="input-group mb-2">
+                        <input type="number" id="width" class="form-control" placeholder="Width (cm)" min="1" step="0.1" required>
+                        <span class="input-group-text">×</span>
+                        <input type="number" id="height" class="form-control" placeholder="Height (cm)" min="1" step="0.1" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Special Instructions</label>
+                    <textarea id="instructions" class="form-control" rows="3" placeholder="Enter any special requirements" required></textarea>
+                </div>
+            </form>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Submit Request',
+        preConfirm: () => {
+            return {
+                width: document.getElementById('width').value,
+                height: document.getElementById('height').value,
+                instructions: document.getElementById('instructions').value
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const data = {
+                product_id: productId,
+                width: parseFloat(result.value.width),
+                height: parseFloat(result.value.height),
+                instructions: result.value.instructions,
+                status: 'pending'
+            };
+
+            fetch('/submit-customize-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Success!', 'Your customization request has been submitted.', 'success');
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                Swal.fire('Error!', error.message, 'error');
+            });
+        }
+    });
+}
+
+// Add this new function for filtering
+function filterProducts(category) {
+    const productCards = document.querySelectorAll('.product-card');
+    
+    productCards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // Update dropdown button text
+    const filterText = category === 'all' ? 'All Products' : 
+        category.charAt(0).toUpperCase() + category.slice(1);
+    document.getElementById('filterDropdown').textContent = `Filter: ${filterText}`;
+}
+
+// Initialize with all products shown
+document.addEventListener('DOMContentLoaded', () => {
+    filterProducts('all');
+});
+
+// Helper functions for quantity input
+function incrementQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    const currentValue = parseInt(quantityInput.value);
+    if (currentValue < 10) {
+        quantityInput.value = currentValue + 1;
+    }
+}
+
+function decrementQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    const currentValue = parseInt(quantityInput.value);
+    if (currentValue > 1) {
+        quantityInput.value = currentValue - 1;
+    }
+}
+</script>
+{% endblock %}

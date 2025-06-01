@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5">Shopping Cart</h1>
+    <div class="row">
+        <!-- Replace the existing cart items section -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4" id="cart-items">
+                    {% if cart_items %}
+                        <div class="cart-header d-flex justify-content-between mb-4">
+                            <h5 class="fw-bold mb-0">Shopping Cart ({{ cart_items|length }} items)</h5>
+                            <button class="btn btn-link text-danger p-0" onclick="clearCart()">
+                                <i class="bi bi-trash me-1"></i>Clear Cart
+                            </button>
+                        </div>
+                        {% for item in cart_items %}
+                        <div class="cart-item mb-4" data-item-id="{{ item.id }}">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <div class="cart-item-image-container">
+                                        <img src="{{ item.image_url }}" alt="{{ item.name }}" 
+                                             class="cart-item-image rounded">
+                                    </div>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="cart-item-details">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="mb-0">{{ item.name }}</h5>
+                                            <button class="btn btn-link text-danger p-0" 
+                                                    onclick="removeItem('{{ item.id }}')">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-muted mb-3">
+                                            {% if item.is_customized %}
+                                                <span class="badge bg-primary me-2">Custom Size</span>
+                                                {{ item.width }}cm × {{ item.height }}cm
+                                            {% else %}
+                                                <span class="badge bg-secondary me-2">Standard Size</span>
+                                                100cm × 100cm
+                                            {% endif %}
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="quantity-control">
+                                                <button class="btn btn-outline-secondary" 
+                                                        onclick="updateQuantity('{{ item.id }}', -1)">
+                                                    <i class="bi bi-dash"></i>
+                                                </button>
+                                                <span class="quantity-display">{{ item.quantity }}</span>
+                                                <button class="btn btn-outline-secondary" 
+                                                        onclick="updateQuantity('{{ item.id }}', 1)">
+                                                    <i class="bi bi-plus"></i>
+                                                </button>
+                                            </div>
+                                            <div class="item-price">₱{{ item.price|peso }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-cart-message">
+                            <img src="{{ url_for('static', filename='img/empty-cart.svg') }}" 
+                                 alt="Empty Cart" 
+                                 class="empty-cart-image mb-4"
+                                 style="width: 120px; height: 120px;">
+                            <h4 class="mb-3">Your cart is empty</h4>
+                            <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
+                            <a href="{{ url_for('views.products_page') }}" class="btn btn-primary">
+                                <i class="bi bi-cart-plus me-2"></i>Start Shopping
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Replace the existing order summary card -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 2rem;">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-4">Order Summary</h5>
+                    <div class="summary-details">
+                        <div class="summary-item d-flex justify-content-between mb-3">
+                            <span class="text-muted">Items ({{ cart_items|length }})</span>
+                            <span class="subtotal-amount">₱{{ total|peso }}</span>
+                        </div>
+                        <div class="summary-item d-flex justify-content-between mb-3">
+                            <span class="text-muted">Shipping Fee</span>
+                            <span class="shipping-fee">150</span>
+                        </div>
+                        <hr class="my-3">
+                        <div class="summary-item d-flex justify-content-between mb-4">
+                            <span class="fw-bold">Total</span>
+                            <span class="total-amount fw-bold">₱{{ total|peso }}</span>
+                        </div>
+                        <button class="btn btn-primary w-100 py-3 mb-3" 
+                                onclick="proceedToCheckout()" 
+                                {% if not cart_items %}disabled{% endif %}>
+                            <i class="bi bi-credit-card me-2"></i>
+                            Proceed to Checkout
+                        </button>
+                        <a href="{{ url_for('views.products_page') }}" class="btn btn-outline-secondary w-100 py-2">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.cart-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #eee;
+    transition: all 0.3s ease;
+}
+
+.cart-item:hover {
+    border-color: #dee2e6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.cart-item-image-container {
+    position: relative;
+    padding-bottom: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.cart-item-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.cart-item-details {
+    padding: 0.5rem 0;
+}
+
+.quantity-control {
+    display: inline-flex;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.25rem;
+}
+
+.quantity-control button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.quantity-control button:hover {
+    background: #fff;
+    color: #0d6efd;
+}
+
+.quantity-display {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.item-price {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.summary-details {
+    font-size: 1rem;
+}
+
+.shipping-fee {
+    color: #198754;
+    font-weight: 500;
+}
+
+.total-amount {
+    font-size: 1.25rem;
+    color: #0d6efd;
+}
+
+.empty-cart-image {
+    opacity: 0.7;
+    transition: transform 0.3s ease;
+}
+
+.empty-cart-message:hover .empty-cart-image {
+    transform: translateY(-5px);
+}
+
+.empty-cart-message {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+@media (max-width: 768px) {
+    .cart-item {
+        padding: 1rem;
+    }
+    
+    .cart-item-details {
+        padding-top: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateCartTotal() {
+    const cartItems = document.querySelectorAll('.cart-item');
+    let total = 0;
+    
+    cartItems.forEach(item => {
+        const price = parseFloat(item.querySelector('.item-price').textContent.replace('₱', '').replace(',', ''));
+        const quantity = parseInt(item.querySelector('.quantity-display').textContent);
+        total += price * quantity;
+    });
+
+    // Update both subtotal and total amount
+    const subtotalElement = document.querySelector('.subtotal-amount');
+    const totalElement = document.querySelector('.total-amount');
+    
+    if (subtotalElement && totalElement) {
+        const formattedTotal = `₱${total.toLocaleString('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+        
+        subtotalElement.textContent = formattedTotal;
+        totalElement.textContent = formattedTotal;
+    }
+}
+
+function updateQuantity(itemId, change) {
+    const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+    const quantityDisplay = itemElement.querySelector('.quantity-display');
+    const currentQuantity = parseInt(quantityDisplay.textContent);
+    const newQuantity = currentQuantity + change;
+    
+    if (newQuantity < 1 || newQuantity > 10) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Quantity',
+            text: 'Quantity must be between 1 and 10',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        return;
+    }
+
+    // Add loading state
+    itemElement.classList.add('updating');
+    
+    fetch('/update-cart-quantity', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            item_id: itemId,
+            quantity: newQuantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update quantity display
+            quantityDisplay.textContent = data.quantity;
+            
+            // Update item price with animation
+            const priceElement = itemElement.querySelector('.item-price');
+            priceElement.classList.add('updating');
+            priceElement.textContent = `₱${data.subtotal.toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+            
+            // Update both subtotal and total
+            const subtotalElement = document.querySelector('.subtotal-amount');
+            const totalElement = document.querySelector('.total-amount');
+            
+            if (subtotalElement && totalElement) {
+                const formattedTotal = `₱${data.total.toLocaleString('en-PH', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`;
+                
+                subtotalElement.textContent = formattedTotal;
+                totalElement.textContent = formattedTotal;
+            }
+            
+            // Remove updating states after animation
+            setTimeout(() => {
+                itemElement.classList.remove('updating');
+                priceElement.classList.remove('updating');
+            }, 300);
+        } else {
+            throw new Error(data.error || 'Failed to update quantity');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to update quantity',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        // Revert quantity display
+        quantityDisplay.textContent = currentQuantity;
+    })
+    .finally(() => {
+        itemElement.classList.remove('updating');
+    });
+}
+
+function removeItem(itemId) {
+    Swal.fire({
+        title: 'Remove Item?',
+        text: 'Are you sure you want to remove this item from your cart?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Yes, remove it',
+        cancelButtonText: 'Cancel',
+        showClass: {
+            popup: 'animate__animated animate__fadeIn'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+            itemElement.style.opacity = '0.5';
+            
+            fetch('/remove-from-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    item_id: itemId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    itemElement.classList.add('animate__animated', 'animate__fadeOutRight');
+                    setTimeout(() => {
+                        itemElement.remove();
+                        // Update cart total
+                        document.getElementById('cart-subtotal').textContent = 
+                            `₱${data.total.toLocaleString('en-PH', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}`;
+                        
+                        // Show empty cart message if no items left
+                        if (document.querySelectorAll('.cart-item').length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Item Removed',
+                        toast: true,
+                        position: 'top-end',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to remove item');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                itemElement.style.opacity = '1';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Failed to remove item'
+                });
+            });
+        }
+    });
+}
+
+function clearCart() {
+    Swal.fire({
+        title: 'Clear Cart?',
+        text: 'Are you sure you want to remove all items from your cart?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Yes, clear cart',
+        cancelButtonText: 'Cancel',
+        showClass: {
+            popup: 'animate__animated animate__fadeIn'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/clear-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Fade out and remove all cart items
+                    document.querySelectorAll('.cart-item').forEach(item => {
+                        item.classList.add('animate__animated', 'animate__fadeOut');
+                        setTimeout(() => {
+                            item.remove();
+                        }, 300);
+                    });
+                    
+                    // Update cart total
+                    document.getElementById('cart-subtotal').textContent = 
+                        `₱${data.total.toLocaleString('en-PH', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                    })}`;
+                    
+                    // Show empty cart message
+                    setTimeout(() => {
+                        document.getElementById('cart-items').innerHTML = `
+                            <div class="empty-cart-message">
+                                <img src="{{ url_for('static', filename='img/empty-cart.svg') }}" 
+                                     alt="Empty Cart" 
+                                     class="empty-cart-image mb-4"
+                                     style="width: 120px; height: 120px;">
+                                <h4 class="mb-3">Your cart is empty</h4>
+                                <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
+                                <a href="{{ url_for('views.products_page') }}" class="btn btn-primary">
+                                    <i class="bi bi-cart-plus me-2"></i>Start Shopping
+                                </a>
+                            </div>
+                        `;
+                    }, 300);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Cart Cleared',
+                        text: 'All items have been removed from your cart',
+                        toast: true,
+                        position: 'top-end',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to clear cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Failed to clear cart'
+                });
+            });
+        }
+    });
+}
+
+function proceedToCheckout() {
+    window.location.href = "{{ url_for('views.checkout') }}";
+}
+</script>
+{% endblock %}

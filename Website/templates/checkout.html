@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5">Checkout</h1>
+    <div class="row">
+        <!-- Main Checkout Form -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-4">Shipping Information</h5>
+                    <form id="checkoutForm" class="needs-validation" novalidate>
+                        <!-- Contact Information -->
+                        <div class="mb-4">
+                            <h6 class="section-title">Contact Information</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">First Name*</label>
+                                    <input type="text" class="form-control" name="firstName" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Last Name*</label>
+                                    <input type="text" class="form-control" name="lastName" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email Address*</label>
+                                    <input type="email" class="form-control" name="email" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Phone Number*</label>
+                                    <input type="tel" class="form-control" name="phone" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Address -->
+                        <div class="mb-4">
+                            <h6 class="section-title">Delivery Address</h6>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">Street Address*</label>
+                                    <input type="text" class="form-control" name="address" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">City/Municipality*</label>
+                                    <input type="text" class="form-control" name="city" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Province*</label>
+                                    <input type="text" class="form-control" name="province" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">ZIP Code*</label>
+                                    <input type="text" class="form-control" name="zipCode" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="mb-4">
+                            <h6 class="section-title">Payment Method</h6>
+                            <div class="payment-methods">
+                                <div class="form-check payment-method-item">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" 
+                                           id="gcash" value="gcash" required>
+                                    <label class="form-check-label" for="gcash">
+                                        <img src="{{ url_for('static', filename='img/gcash-logo.svg') }}" 
+                                             alt="GCash" class="payment-logo">
+                                        GCash
+                                    </label>
+                                </div>
+                                <div class="form-check payment-method-item">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" 
+                                           id="cod" value="cod" required>
+                                    <label class="form-check-label" for="cod">
+                                        <i class="bi bi-cash-coin"></i>
+                                        Cash on Delivery
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="mb-4">
+                            <h6 class="section-title">Additional Notes (Optional)</h6>
+                            <textarea class="form-control" rows="3" name="notes"
+                                      placeholder="Add any special instructions or notes"></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 2rem;">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-4">Order Summary</h5>
+                    <div class="order-summary">
+                        <!-- Cart Items Summary -->
+                        <div class="cart-items-summary mb-3">
+                            {% for item in cart_items %}
+                            <div class="summary-item d-flex align-items-center mb-3">
+                                <div class="item-image">
+                                    <img src="{{ item.image_url }}" alt="{{ item.name }}">
+                                </div>
+                                <div class="item-details ms-3">
+                                    <h6 class="mb-1">{{ item.name }}</h6>
+                                    <p class="text-muted mb-0">Qty: {{ item.quantity }}</p>
+                                    <p class="item-price mb-0">₱{{ item.price|peso }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Cost Breakdown -->
+                        <div class="cost-breakdown">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span>₱{{ subtotal|peso }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Shipping Fee</span>
+                                <span class="shipping-fee">₱{{ shipping_fee|peso }}</span>
+                            </div>
+                            <hr class="my-3">
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="fw-bold">Total</span>
+                                <span class="total-amount fw-bold">₱{{ total|peso }}</span>
+                            </div>
+
+                            <!-- Place Order Button -->
+                            <button type="submit" class="btn btn-primary w-100 py-3" 
+                                    id="placeOrderBtn">
+                                <i class="bi bi-lock-fill me-2"></i>
+                                Place Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.section-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-control {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.payment-method-item {
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.payment-method-item:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.payment-method-item input:checked + label {
+    color: #0d6efd;
+}
+
+.payment-logo {
+    height: 24px;
+    margin-right: 0.5rem;
+    width: auto;
+    vertical-align: middle;
+}
+
+.payment-method-item img {
+    max-width: 100px;
+    object-fit: contain;
+}
+
+.cart-items-summary {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.item-image img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.item-price {
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.shipping-fee {
+    color: #198754;
+    font-weight: 500;
+}
+
+.total-amount {
+    color: #0d6efd;
+    font-size: 1.25rem;
+}
+
+/* Loading State */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Form Validation Styles */
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:valid {
+    border-color: #198754;
+}
+
+@media (max-width: 768px) {
+    .sticky-top {
+        position: relative !important;
+        top: 0 !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkoutForm');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+
+    placeOrderBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        // Get selected payment method
+        const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked');
+        if (!selectedPayment) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Payment Method Required',
+                text: 'Please select a payment method'
+            });
+            return;
+        }
+
+        // Show loading state
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+
+        const orderData = {
+            contact: {
+                firstName: form.querySelector('[name="firstName"]').value,
+                lastName: form.querySelector('[name="lastName"]').value,
+                email: form.querySelector('[name="email"]').value,
+                phone: form.querySelector('[name="phone"]').value
+            },
+            shipping: {
+                address: form.querySelector('[name="address"]').value,
+                city: form.querySelector('[name="city"]').value,
+                province: form.querySelector('[name="province"]').value,
+                zipCode: form.querySelector('[name="zipCode"]').value
+            },
+            payment_method: selectedPayment.value,
+            notes: form.querySelector('[name="notes"]').value
+        };
+
+        // Send order to server
+        fetch('/place-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Order Placed Successfully!',
+                    text: 'Thank you for your purchase.',
+                    confirmButtonText: 'View Order'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = `/transactions`;
+                    }
+                });
+            } else {
+                throw new Error(data.error || 'Failed to place order');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        })
+        .finally(() => {
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.innerHTML = '<i class="bi bi-lock-fill me-2"></i>Place Order';
+        });
+    });
+
+    // Prevent form submission
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Products</h5>
+                    <h2 class="card-text">{{ total_products }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h2 class="card-text">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Orders</h5>
+                    <h2 class="card-text">{{ total_orders }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary">
+                            Add New Product
+                        </a>
+                        <a href="{{ url_for('admin.manage_users') }}" class="btn btn-secondary">
+                            Manage Users
+                        </a>
+                        <a href="{{ url_for('admin.manage_products') }}" class="btn btn-info">
+                            Manage Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Recent Orders</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.customer_name }}</td>
+                            <td>{{ order.date }}</td>
+                            <td>
+                                <span class="badge bg-{{ order.status_color }}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                            <td>${{ "%.2f"|format(order.amount) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">View</button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-3">
+                                <p class="text-muted mb-0">No recent orders found</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customize Orders -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Customize Orders</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in customize_requests %}
+                        <tr>
+                            <td>#{{ request.id }}</td>
+                            <td>{{ request.customer_name }}</td>
+                            <td>{{ request.product_name }}</td>
+                            <td>{{ request.created_at }}</td>
+                            <td>
+                                <span class="badge bg-{{ request.status_color }}">
+                                    {{ request.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" 
+                                            onclick='viewRequestDetails(JSON.parse(`{{ request|tojson|safe }}`))'
+                                            class="btn btn-sm btn-info me-1">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+                                    {% if request.status == 'pending' %}
+                                        <button onclick="approveRequest('{{ request.id }}')" 
+                                                class="btn btn-sm btn-success me-1">
+                                            <i class="bi bi-check-lg"></i> Approve
+                                        </button>
+                                    {% endif %}
+                                    <button onclick="deleteRequest('{{ request.id }}')" 
+                                            class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-3">
+                                <p class="text-muted mb-0">No customize requests found</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Request Details Modal -->
+<div class="modal fade" id="requestDetailsModal" tabindex="-1" aria-labelledby="requestDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="requestDetailsModalLabel">Request Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Customer Information</h6>
+                        <p><strong>Name:</strong> <span id="customerName"></span></p>
+                        <p><strong>ID:</strong> <span id="customerId"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Product Information</h6>
+                        <p><strong>Name:</strong> <span id="productName"></span></p>
+                        <p><strong>Price:</strong> <span id="productPrice"></span></p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Customization Details</h6>
+                        <p><strong>Width:</strong> <span id="width"></span></p>
+                        <p><strong>Height:</strong> <span id="height"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Status Information</h6>
+                        <p><strong>Status:</strong> <span id="status" class="badge"></span></p>
+                        <p><strong>Created At:</strong> <span id="createdAt"></span></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Special Instructions</h6>
+                        <div id="instructions" class="p-3 bg-light border rounded"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function approveRequest(requestId) {
+    event.preventDefault(); // Prevent default button behavior
+    
+    Swal.fire({
+        title: 'Approve Request?',
+        text: "This will notify the customer that their request is approved.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, approve it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading state
+            Swal.showLoading();
+            
+            fetch(`/admin/customize-requests/${requestId}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Approved!',
+                        text: 'Request has been approved successfully.',
+                        timer: 1500
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to approve request');
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message
+                });
+            });
+        }
+    });
+}
+
+function deleteRequest(requestId) {
+    event.preventDefault(); // Prevent default button behavior
+    
+    Swal.fire({
+        title: 'Delete Request?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading state
+            Swal.showLoading();
+            
+            fetch(`/admin/customize-requests/${requestId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'Request has been deleted successfully.',
+                        timer: 1500
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to delete request');
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message
+                });
+            });
+        }
+    });
+}
+
+function viewRequestDetails(request) {
+    try {
+        // Debug logs
+        console.log('Function called');
+        console.log('Request data:', request);
+
+        // Get modal element with error handling
+        const modalElement = document.getElementById('requestDetailsModal');
+        console.log('Modal element:', modalElement);
+
+        if (!modalElement) {
+            throw new Error('Modal element not found - check if modal HTML is present in page');
+        }
+
+        // Initialize modal with debug
+        let modal;
+        try {
+            modal = new bootstrap.Modal(modalElement);
+            console.log('Modal initialized');
+        } catch (modalError) {
+            console.error('Modal initialization error:', modalError);
+            throw new Error('Failed to initialize modal - check Bootstrap loading');
+        }
+
+        // Populate fields
+        const fields = {
+            'customerName': request.customer_name || 'N/A',
+            'customerId': request.customer_id || 'N/A',
+            'productName': request.product_name || 'N/A',
+            'productPrice': request.original_price ? `₱${request.original_price.toFixed(2)}` : 'N/A',
+            'width': request.width ? `${request.width} cm` : 'N/A',
+            'height': request.height ? `${request.height} cm` : 'N/A',
+            'instructions': request.instructions || 'No special instructions'
+        };
+
+        // Update fields
+        Object.entries(fields).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+
+        // Format and set date
+        if (request.created_at) {
+            let date;
+            if (request.created_at._seconds) {
+                date = new Date(request.created_at._seconds * 1000);
+            } else {
+                date = new Date(request.created_at);
+            }
+            const dateElement = document.getElementById('createdAt');
+            if (dateElement) {
+                dateElement.textContent = date.toLocaleString('en-PH');
+            }
+        }
+
+        // Update status badge
+        const statusElement = document.getElementById('status');
+        if (statusElement) {
+            statusElement.className = `badge bg-${request.status_color || 'secondary'}`;
+            statusElement.textContent = request.status || 'N/A';
+        }
+
+        // Show modal
+        modal.show();
+        console.log('Modal shown');
+
+    } catch (error) {
+        console.error('Error in viewRequestDetails:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to display request details: ' + error.message
+        });
+    }
+}
+
+// Test Bootstrap loading
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
+    console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+    console.log('Modal element present:', !!document.getElementById('requestDetailsModal'));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Edit Account{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Edit Account</h2>
+                    <form method="POST">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="fullName" name="fullName" 
+                                   value="{{ user.display_name }}" required>
+                            <label for="fullName">Full Name</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email }}" disabled>
+                            <label for="email">Email address</label>
+                        </div>
+                        <hr class="my-4">
+                        <h5 class="mb-3">Change Password</h5>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" 
+                                   minlength="6" required>
+                            <label for="newPassword">New Password</label>
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
+                                   minlength="6">
+                            <label for="confirmPassword">Confirm New Password</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
