@@ -11,7 +11,7 @@ load_dotenv()
 
 def create_app():
     initial_app = Flask(__name__)
-    initial_app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev')
+    initial_app.config['SECRET_KEY'] = os.getenv('nyahahasecret', 'dev')
     initial_app.config['SESSION_TYPE'] = 'filesystem'
 
     # Initialize Firebase with environment variables
