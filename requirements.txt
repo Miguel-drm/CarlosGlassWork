@@ -1,8 +1,8 @@
-flask==2.0.1
+flask==2.2.0
 firebase-admin==5.0.0
 python-dotenv==0.19.0
 gunicorn==20.1.0
 cloudinary==1.26.0
-Werkzeug==2.0.1
+Werkzeug==2.2.0
 Flask-Session==0.5.0
 redis==4.5.4
