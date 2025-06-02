@@ -1,29 +1,55 @@
+# Firebase Credentials
+Website/credentials/*
+!Website/credentials/.gitkeep
+!Website/credentials/credentials_template.py
+*-firebase-adminsdk-*.json
+*.service-account.json
+firebase-credentials.json
+
 # Environment variables
 .env
 *.env
 .env.*
 !.env.example
 
-# Firebase
-firebase-credentials.json
-*-firebase-adminsdk-*.json
-
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 venv/
-
-# Node modules
-node_modules/
+*.pyc
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Local development settings
+# Local development
 instance/
+.webassets-cache/
 
 # Database
 *.db
 *.sqlite3
+
+# Logs
+*.log
+logs/

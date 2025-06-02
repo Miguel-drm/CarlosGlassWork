@@ -1,17 +1,34 @@
+import os
 from flask import Flask
+from firebase_admin import credentials, initialize_app
+from dotenv import load_dotenv
 from flask_session import Session
-from Website.firebase_config import initialize_firebase
 from .admin import admin_bp
 from .admin.commands import init_admin_commands
 from .filters import bp as filters_bp, init_filters  # Modified import
 
+load_dotenv()
+
 def create_app():
     initial_app = Flask(__name__)
-    initial_app.config['SECRET_KEY'] = 'secret'
+    initial_app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev')
     initial_app.config['SESSION_TYPE'] = 'filesystem'
 
-    # Initialize Firebase before registering blueprints
-    initialize_firebase()
+    # Initialize Firebase with environment variables
+    cred = credentials.Certificate({
+        "type": os.getenv('FIREBASE_TYPE'),
+        "project_id": os.getenv('FIREBASE_PROJECT_ID'),
+        "private_key_id": os.getenv('FIREBASE_PRIVATE_KEY_ID'),
+        "private_key": os.getenv('FIREBASE_PRIVATE_KEY', '').replace('\\n', '\n'),
+        "client_email": os.getenv('FIREBASE_CLIENT_EMAIL'),
+        "client_id": os.getenv('FIREBASE_CLIENT_ID'),
+        "auth_uri": os.getenv('FIREBASE_AUTH_URI'),
+        "token_uri": os.getenv('FIREBASE_TOKEN_URI'),
+        "auth_provider_x509_cert_url": os.getenv('FIREBASE_AUTH_PROVIDER_X509_CERT_URL'),
+        "client_x509_cert_url": os.getenv('FIREBASE_CLIENT_X509_CERT_URL')
+    })
+    
+    initialize_app(cred)
 
     from .views import views
     initial_app.register_blueprint(views, url_prefix='/')
