@@ -57,3 +57,7 @@ instance/
 # Logs
 *.log
 logs/
+
+# Additional ignores
+.DS_Store
+node_modules/
