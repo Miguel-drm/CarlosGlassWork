@@ -1,5 +1,6 @@
 from datetime import datetime
 from Website import create_app
+import os
 
 app = create_app()
 
@@ -12,4 +13,5 @@ def health_check():
     return {'status': 'healthy'}, 200
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
