@@ -6,6 +6,7 @@ from flask_session import Session
 from .admin import admin_bp
 from .admin.commands import init_admin_commands
 from .filters import bp as filters_bp, init_filters  # Modified import
+import tempfile
 
 load_dotenv()
 
@@ -13,6 +14,7 @@ def create_app():
     initial_app = Flask(__name__)
     initial_app.config['SECRET_KEY'] = os.getenv('nyahahasecret', 'dev')
     initial_app.config['SESSION_TYPE'] = 'filesystem'
+    initial_app.config['SESSION_FILE_DIR'] = tempfile.gettempdir()
 
     # Initialize Firebase with environment variables
     cred = credentials.Certificate({
